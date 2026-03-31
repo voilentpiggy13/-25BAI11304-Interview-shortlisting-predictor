@@ -119,7 +119,7 @@ campus-placement-predictor/
 ##  Author
 
 Pratham Kumar Yadav (25BAI11304)  
-B.Tech — Computer Science & Engineering  
+B.Tech  Computer Science & Engineering (AI/ML)
 VIT Bhopal University
 
 ---
