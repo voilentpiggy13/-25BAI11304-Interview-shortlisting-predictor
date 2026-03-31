@@ -1,0 +1,115 @@
+
+
+
+PROJECT REPORT
+Campus Placement Predictor
+An AI-Inspired Heuristic Search System for Placement Eligibility
+
+
+Submitted by:
+Pratham Kumar Yadav
+25BAI11304
+B.Tech — Computer Science & Engineering
+VIT Bhopal University
+ 
+1. Introduction
+Campus recruitment is stressful partly because of the uncertainty. Which companies are you actually eligible for? If you are eligible, what are your realistic chances? Most students just guess, and either apply everywhere or miss opportunities they didn't realize they had.
+This tool — built in Python for the command line — takes your subject marks, computes your GPA, and then estimates your shortlisting probability for different companies using a heuristic scoring formula. The formula is not a trained ML model. It's a hand-designed scoring system that factors in academic performance, company-specific cutoffs, and some weighting logic drawn from AI search concepts.
+The project came out of a coursework requirement, but the problem felt worth actually solving rather than just simulating.
+
+2. Problem Statement
+Students going into placement season usually don't have a clear picture of where they stand. They don't know which companies will consider them based on GPA, and even among the ones that will, there's no good way to tell whether they're a competitive applicant or just filling up the candidate pool. So they apply everywhere, waste time on long shots, and sometimes miss the ones where they'd have had a real chance.
+This project keeps things simple on purpose. No database, no internet, nothing you can't trace through yourself. The formula is transparent  it takes a student's marks, calculates their GPA, checks it against company cutoffs, and produces a shortlisting probability that's actually explainable. Not a black box.
+
+3. Project Objectives
+You enter marks for five subjects. The tool computes your GPA, drops any companies below their minimum cutoff, then scores the remaining ones using a probability formula and sorts them highest to lowest. The output is plain text clean enough to read in under a minute.
+The sorting logic mirrors Best-First Search: rather than showing every eligible company in arbitrary order, it surfaces the ones worth applying to first.
+
+4. Technical Approach
+4.1 GPA Calculation
+The student inputs marks for five subjects (out of 100). The GPA is computed using a simple linear conversion:
+
+GPA = (Sum of Marks) / (Number of Subjects × 10)
+
+This maps a percentage-based score to a 10-point GPA scale, consistent with how most Indian universities including VIT Bhopal calculate CGPA.
+
+4.2 Eligibility Filter
+Every company has a minimum GPA cutoff. The tool filters out ineligible ones first, so the probability formula only runs on companies that actually matter for that student.
+4.3 Selection Probability Formula (Heuristic)
+For each eligible company, the probability is computed as:
+
+P = max(0, min(100, (GPA − MinGPA) × 20 − (Difficulty × 10) + 50))
+
+The probability score has three parts. The gap between the student's GPA and the company's minimum cutoff gets multiplied by 20,  a half-point margin above the threshold adds 10 points to the score. A difficulty penalty subtracts based on how selective the company is (rated 1 to 3, multiplied by 10). And there's a base offset of 50, so a student who just barely qualifies starts at 50% rather than zero.
+The final number is clamped between 0 and 100. No 120s, no negatives
+
+4.4 Informed Search (Best-First Ordering)
+After scoring, companies are sorted highest to lowest. It's the same logic as Best-First Search: don't start with the longest shots. A student reading the output knows immediately where to focus — the list does the prioritisation for them
+5. Dataset — Company Profiles
+The following company profiles are hardcoded in the system as a representative dataset. Real deployments could load this from a CSV or database.
+
+Company	Min GPA	Difficulty Level	Difficulty Description
+TCS	6.0	1	Entry-level / High volume
+Infosys	6.5	1	Entry-level / High volume
+Wipro	7.0	2	Mid-tier
+Cognizant	7.0	2	Mid-tier
+Accenture	7.5	2	Mid-tier / Competitive
+Amazon	8.5	3	Premium / Highly selective
+
+6. Code Walkthrough
+The project is written in a single Python file for simplicity. It is organised into four logical sections:
+
+Function / Section	Purpose
+companies (list)	Data store — holds company name, min GPA, and difficulty
+calculate_gpa(marks)	Converts raw subject marks to a GPA score on a 10-point scale
+selection_probability(gpa, company)	Computes heuristic shortlisting probability for one company
+predict_companies(gpa)	Filters eligible companies, scores them, and sorts by probability
+main()	Entry point — handles user input/output and orchestrates all functions
+
+The import random statement is present in the original code but unused — it was likely included during iterative development for a planned randomised simulation feature that was later replaced by the deterministic heuristic formula. It has been retained in the final code without causing any functional impact.
+
+7. Sample Execution
+Below is an example interaction with the program for a student scoring consistently in the 80s:
+
+Enter marks of 5 subjects:
+Subject 1: 82  |  Subject 2: 78  |  Subject 3: 85  |  Subject 4: 80  |  Subject 5: 76
+
+Your GPA: 8.02
+
+--- Predicted Shortlisting ---
+TCS: 90%  |  Infosys: 80%  |  Wipro: 60%  |  Cognizant: 60%  |  Accenture: 31%
+
+Note: Amazon is excluded from output because the student's GPA of 8.02 does not meet the 8.5 minimum threshold.
+
+8. Challenges Faced
+Getting the formula right took a few tries. Early versions were too forgiving with borderline GPAs or too harsh on strong ones  small weight adjustments made a bigger difference than expected.
+Clamping came later, after the formula started returning values like 130% and -20%. A max/min wrapper fixed it. The +50 base offset came from the same kind of problem: students who just cleared the cutoff were getting 0%, which felt wrong. Adding the offset pushed those cases to a more honest starting point.
+Using a heuristic instead of a statistical model was partly a constraint — there's no real placement data here  and partly a choice. Every output traces directly back to the inputs. Nothing is happening inside a model you can't see
+
+9. Key Learnings
+Applying Best-First Search to career decisions rather than a maze or puzzle changed how the algorithm felt. When the output is a ranked list of companies a real student might apply to, ordering by heuristic value stops being a textbook abstraction.
+Designing the formula was harder than expected. Every parameter needed a reason  not just a number that produced plausible output, but a justification for why that weight specifically.
+Clamping and eligibility filtering felt minor during development. They weren't. Without them the scores were wrong in ways that weren't obvious until real numbers went through  and a scoring system nobody trusts is just noise.
+Even in a single file, clean function separation paid off. Debugging was faster, and adding features later wouldn't require untangling everything.
+Writing the README before finalising the code was worth doing. It forced a clear answer to a question that's easy to dodge when you're inside the code: what does this actually do, versus what was it supposed to do.
+
+10. Future Scope
+The current version is a solid foundation. Possible extensions include:
+
+Enhancement	Description
+Dynamic company data	Load company profiles from a CSV or JSON file instead of hardcoding
+Additional inputs	Factor in number of backlogs, projects, certifications, or internship experience
+GUI interface	Build a Tkinter or web-based front-end for non-technical users
+Real historical data	Train a lightweight ML model on actual placement outcomes to replace the heuristic
+Resume tips integration	Suggest preparation resources based on identified skill gaps
+
+11. Conclusion
+A heuristic doesn't need training data to be useful — it needs to be thought through. This project shows that a small, self-contained tool can still produce output worth trusting, as long as the formula behind it has a clear rationale.
+The bigger lesson was about sequencing. The formula, the dataset, the ranking order — none of it came from adding features and seeing what worked. It came from thinking about how placement decisions actually get made, then building toward that. The code was the last step, not the first.
+Submitted as part of academic coursework at VIT Bhopal University.
+
+12. References
+•	Russell, S. & Norvig, P. — Artificial Intelligence: A Modern Approach (4th ed.) — Chapters on Heuristic Search
+•	Python 3 Official Documentation — https://docs.python.org/3/
+•	VIT Bhopal University — CGPA Grading System Guidelines
+•	Placement statistics and company GPA benchmarks — publicly available campus recruitment forums
